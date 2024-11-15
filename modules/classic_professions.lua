@@ -3,6 +3,24 @@ local LibQTip = LibStub('LibQTip-1.0')
 local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 local options
 
+local professionMapping = {
+    [171] = 'Alchemy',
+	[164] = 'Blacksmithing',
+	[333] = 'Enchanting',
+	[202] = 'Engineering',
+	[773] = 'Inscription',
+	[755] = 'Jewelcrafting',
+	[165] = 'Leatherworking',
+	[197] = 'Tailoring',
+	[182] = 'Herbalism',
+	[186] = 'Mining',
+	[393] = 'Skinning',
+	[185] = 'Cooking',
+	[356] = 'Fishing',
+	[129] = 'First Aid',
+	[794] = 'Archaeology'
+}
+
 local module = 'classic_professions'
 local labelRows = {
     profession1CDs = {
@@ -54,21 +72,18 @@ end
 -- Need to rewrite most of this stuff. I hate the classic API
 local function UpdateProfessions(charInfo)
     charInfo.professions = charInfo.professions or {}
-
-    local professions = {}
-    local updated = false
-    for skillLine = 1, GetNumSkillLines() do
-        local name, _, _, skillRank, _, _, skillMaxRank, isProfession = GetSkillLineInfo(skillLine)
-        if isProfession then
-            if skillRank < skillMaxRank then
-                updated = true
-            end
-            tinsert(professions, {name = name, skillRank = skillRank, skillMaxRank = skillMaxRank})
-        end
-    end
-
+	local professions = {}
+	local updated = false
+	local prof1, prof2, _, _, _ = GetProfessions()
+	local professionsTemp = {prof1, prof2}
+	for _, professionIndex in ipairs(professionsTemp) do
+		local name, _, skillRank, skillMaxRank, _, _, skillLine, _, _, _ = GetProfessionInfo(professionIndex)
+		if skillRank < skillMaxRank then
+			updated = true
+		end
+        tinsert(professions, {name = professionMapping[skillLine], skillRank = skillRank, skillMaxRank = skillMaxRank})
+	end
     charInfo.professions = professions
-
     if updated then
         PermoksAccountManager:SendCharacterUpdate('professions')
     end
